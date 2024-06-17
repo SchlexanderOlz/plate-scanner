@@ -6,7 +6,7 @@ import numpy as np
 PLATE_RATIO = 520 / 120
 
 
-def find_countours(image: cv2.typing.MatLike) -> Sequence[cv2.typing.MatLike]:
+def find_contours(image: cv2.typing.MatLike) -> Sequence[cv2.typing.MatLike]:
     structure = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(20, 3))
 
     grayed = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -113,7 +113,7 @@ def clean_plate(plate: cv2.typing.MatLike):
 
 def extract_candidates(image: cv2.typing.MatLike) -> Sequence[cv2.typing.MatLike]:
     candidates = []
-    contours = find_countours(image)
+    contours = find_contours(image)
     for contour in contours:
         if validate_plate(contour):
             x, y, w, h = cv2.boundingRect(contour)
@@ -124,7 +124,6 @@ def extract_candidates(image: cv2.typing.MatLike) -> Sequence[cv2.typing.MatLike
                 print("Plate found")
                 x, y, w, h = coords
                 candidates.append(cleaned)
-                cv2.imshow("Plate" + str(random.random()), cleaned)
 
     cv2.waitKey(0)
     return candidates
