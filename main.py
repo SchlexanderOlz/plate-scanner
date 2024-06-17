@@ -1,13 +1,13 @@
 import cv2
-from crop import crop
+from crop import find_countours, validate_plate, clean_plate, extract_candidates
 import imutils
 
 if __name__ == "__main__":
     image: cv2.typing.MatLike = cv2.imread("data/license_plates/3375_1389548347.jpg", cv2.IMREAD_COLOR)
 
     image = imutils.resize(image, width=500)
-    croped = crop(image)
-    cv2.imshow("croped", croped)
+
+    candidates = extract_candidates(image)
 
 
     while cv2.waitKey(0) != 27:
