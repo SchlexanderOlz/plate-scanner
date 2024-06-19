@@ -2,10 +2,7 @@ import cv2
 from skimage import measure
 import imutils
 import numpy as np
-
-def parse_plate(plate: cv2.typing.MatLike) -> str:
-    return "ABC1234"
-
+import random
 
 def extract_characters(plate: cv2.typing.MatLike) -> list[str]:
     value_channel = cv2.split(cv2.cvtColor(plate, cv2.COLOR_BGR2HSV))[2]
@@ -28,7 +25,8 @@ def extract_characters(plate: cv2.typing.MatLike) -> list[str]:
         labelMask = np.zeros(threshhold.shape, dtype="uint8")
         labelMask[lables == label] = 255
 
-        contoures = cv2.findContours(labelMask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contoures = cv2.findContours(labelMask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
 
         contoures = contoures[1] if imutils.is_cv3() else contoures[0]
 
@@ -36,7 +34,6 @@ def extract_characters(plate: cv2.typing.MatLike) -> list[str]:
 
         max_contour = max(contoures, key=cv2.contourArea)
         (x, y, w, h) = cv2.boundingRect(max_contour)
-
 
 
         aspectRatio = w / h
@@ -52,8 +49,7 @@ def extract_characters(plate: cv2.typing.MatLike) -> list[str]:
             hull = cv2.convexHull(max_contour)
             cv2.drawContours(candidates, [hull], -1, 255, -1)
 
-    contoures, _ = cv2.findContours(candidates, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+    contoures, _ = cv2.findContours(candidates, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     chars = []
     bg_thresh = cv2.cvtColor(plate, cv2.COLOR_BGR2GRAY)
@@ -79,7 +75,8 @@ def extract_characters(plate: cv2.typing.MatLike) -> list[str]:
             else:
                 x = 0
             
-            _, converted = cv2.threshold(bg_thresh[y:y+h+(inc * 2), x:x+w+(inc * 2)], 150, 255, cv2.THRESH_BINARY)
-            chars.append(cv2.cvtColor(converted, cv2.COLOR_GRAY2RGB))
+            _, converted = cv2.threshold(bg_thresh[y:y+h+(inc * 2), x:x+w+(inc * 2)], 150, 255, cv2.THRESH_BINARY_INV)
+            cv2.imshow("char" + str(random.random()), converted)
+            chars.append( cv2.cvtColor(converted, cv2.COLOR_GRAY2RGB))
         return chars 
     return []

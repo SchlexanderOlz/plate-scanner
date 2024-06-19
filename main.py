@@ -1,6 +1,6 @@
 import cv2
 from crop import extract_candidates
-from parse import parse_plate, extract_characters
+from parse import extract_characters
 import imutils
 import random
 from ocr import OCR
@@ -8,7 +8,7 @@ import joblib
 
 
 if __name__ == "__main__":
-    image: cv2.typing.MatLike = cv2.imread("data/license_plates/3375_1389548347.jpg", cv2.IMREAD_COLOR)
+    image: cv2.typing.MatLike = cv2.imread("data/license_plates/145_-33958056.jpg", cv2.IMREAD_COLOR)
 
     model = OCR(model_path="model/emnist_byclass_svm.pkl")
 
@@ -21,8 +21,12 @@ if __name__ == "__main__":
 
         chars = extract_characters(candidate)
         for char in chars:
-            cv2.imshow("char" + str(random.random()), char)
+             cv2.imshow("char" + str(random.random()), char)
+             pass
         prediction = model.lable_image_list(chars)
+        if len(prediction) < 3 or len(prediction) > 8 or " " in prediction:
+            print("Wrong prediction")
+            continue
         print(prediction)
 
 

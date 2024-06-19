@@ -1,32 +1,41 @@
-from sklearn import svm
-from sklearn.model_selection import GridSearchCV
+from sklearn import svm, neighbors
+from sklearn.model_selection import GridSearchCV, train_test_split
 import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
+import helper
 import joblib
 
 
-training_data = pd.read_csv("data/emnist-byclass-train.csv", header=None, nrows=10000) 
-training_Y = training_data.iloc[:, 0]
-training_x = training_data.iloc[:, 1:]
+az_training, az_lables = helper.load_az_dataset()
+mnist_training, mnist_lables = helper.load_minst_dataset()
 
 
-# training_x = scaler = preprocessing.StandardScaler().fit_transform(training_x)
+print(az_training)
+print(mnist_training)
+data = np.concatenate([az_training, mnist_training])
+lables = np.hstack([az_lables, mnist_lables])
 
-param_grid = {'C': [1, 10, 100], 'gamma': [0.001, 0.01, 0.1], 'kernel': ['rbf', 'linear']}
+
+training_x, test_x, training_Y, test_Y = train_test_split(
+    data, lables, test_size=0.33, random_state=42
+)
+
+training_x = training_x
+training_Y = training_Y
 
 
-model = svm.SVC(kernel='rbf', C=1, gamma=0.01)
-grid_search = GridSearchCV(model, param_grid, cv=5)
+
+
+# param_grid = {'C': [1, 10, 100], 'gamma': [0.001, 0.01, 0.1], 'kernel': ['rbf', 'linear']}
+
+param_grid = dict(n_neighbors=list(range(1, 31)))
+model = neighbors.KNeighborsClassifier()
+grid_search = GridSearchCV(model, param_grid, cv=10)
 model = grid_search.fit(training_x, training_Y)
 
 
-
-test_data = pd.read_csv("data/emnist-byclass-test.csv", header=None, nrows=1000)
-
-test_Y = test_data.iloc[:, 0]
-test_x = test_data.iloc[:, 1:]
 
 predictions = model.predict(test_x)
 
@@ -35,4 +44,4 @@ print("Accuracy: ", np.mean(predictions == test_Y))
 print("Accuracy: ", accuracy_score(test_Y, predictions))
 print(classification_report(test_Y, predictions))
 
-joblib.dump(model, "model/emnist_byclass_svm.pkl")
+joblib.dump(model, "model/emnist_byclass_svm_full.pkl")

@@ -7,7 +7,7 @@ PLATE_RATIO = 520 / 120
 
 
 def find_contours(image: cv2.typing.MatLike) -> Sequence[cv2.typing.MatLike]:
-    structure = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(20, 3))
+    structure = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(30, 12))
 
     grayed = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blured = cv2.GaussianBlur(grayed, (5, 5), 0)
@@ -18,10 +18,9 @@ def find_contours(image: cv2.typing.MatLike) -> Sequence[cv2.typing.MatLike]:
         sobelx, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
     )
 
-    element = structure
     threshhold_copy = threshold_img.copy()
     cv2.morphologyEx(
-        src=threshold_img, op=cv2.MORPH_CLOSE, kernel=element, dst=threshhold_copy
+        src=threshold_img, op=cv2.MORPH_CLOSE, kernel=structure, dst=threshhold_copy
     )
 
     contours, _ = cv2.findContours(
@@ -32,8 +31,7 @@ def find_contours(image: cv2.typing.MatLike) -> Sequence[cv2.typing.MatLike]:
 
 
 def ratioCheck(area, width, height):
-
-    min = 4100
+    min = 410
     max = 15000
 
     ratioMin = 3
@@ -59,7 +57,7 @@ def validate_plate(contour: cv2.typing.MatLike) -> bool:
     else:
         angle = 90 + angle
 
-    if angle > 30:
+    if angle >= 30 and angle <= 150:
         return False
 
     if height == 0 or width == 0:
@@ -67,10 +65,10 @@ def validate_plate(contour: cv2.typing.MatLike) -> bool:
 
     area = width * height
 
-    min = 4100
+    min = 410
     max = 15000
 
-    ratioMin = 2.5
+    ratioMin = 3
     ratioMax = 7
 
     ratio = float(width) / float(height)
@@ -101,29 +99,30 @@ def clean_plate(plate: cv2.typing.MatLike):
 
         max_cnt = contours[max_index]
         max_cntArea = areas[max_index]
-        x, y, w, h = cv2.boundingRect(max_cnt)
-        rect = cv2.minAreaRect(max_cnt)
-        if not ratioCheck(max_cntArea, plate.shape[1], plate.shape[0]):
+        (x, y), (width, height), _ = cv2.minAreaRect(max_cnt)
+
+        if not ratioCheck(max_cntArea, width, height):
             return None, None
 
-        return plate, [x, y, w, h]
+        return plate, [x, y, width, height]
     else:
         return None, None
 
 
-def extract_candidates(image: cv2.typing.MatLike) -> Sequence[cv2.typing.MatLike]:
-    candidates = []
+def extract_candidates(image: cv2.typing.MatLike) -> list[cv2.typing.MatLike]:
+    candidates: list = []
     contours = find_contours(image)
     for contour in contours:
         if validate_plate(contour):
             x, y, w, h = cv2.boundingRect(contour)
             plate_area_img = image[y : y + h, x : x + w]
 
+
             cleaned, coords = clean_plate(plate_area_img)
+
             if cleaned is not None:
                 print("Plate found")
                 x, y, w, h = coords
                 candidates.append(cleaned)
 
-    cv2.waitKey(0)
     return candidates

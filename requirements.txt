@@ -1,8 +1,9 @@
 opencv-python >= 3.4.x
 imutils >= 0.5.x
 scikit-image >= 0.23.x
-tensorflow[and-cuda] >= 2.5.x
+tensorflow[and-cuda] == 2.16.1
 scikit-learn >= 0.24.x
 pandas >= 1.2.x
 joblib >= 1.0.x
 numpy >= 1.20.x
+keras >= 2.4.x
