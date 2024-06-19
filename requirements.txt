@@ -5,3 +5,4 @@ tensorflow[and-cuda] >= 2.5.x
 scikit-learn >= 0.24.x
 pandas >= 1.2.x
 joblib >= 1.0.x
+numpy >= 1.20.x

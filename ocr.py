@@ -1,59 +1,44 @@
-import tensorflow as tf
+import sklearn.svm
 import cv2
 import numpy as np
+import sklearn
+import random
+import joblib
 
 class OCR:
 
-    def __init__(self, model_path: str, lable_path: str) -> None:
-        self.graph = self.load_graph(model_path)
-        self.lable = self.load_lable(lable_path)
-        self.sess = tf.compat.v1.Session(graph=self.graph, config=tf.compat.v1.ConfigProto())
+    def __init__(self, model_path: str) -> None:
+        self.model: sklearn.svm.SVC = self.load_graph(model_path)
     
-    def load_graph(self, model_path: str) -> tf.Graph:
-        graph = tf.Graph()
+    def load_graph(self, model_path: str) -> sklearn.svm.SVC:
+        model = None
+        with open(model_path, 'rb') as file:
+            model = joblib.load(file)
+        return model 
 
-        graph_def = tf.compat.v1.GraphDef()
-        with tf.io.gfile.GFile(model_path, "rb") as f:
-            graph_def.ParseFromString(f.read())
-        
-        with graph.as_default() as graph:
-            tf.import_graph_def(graph_def)
-        
-        return graph
 
-    def load_lable(self, lable_path: str) -> list[str]:
-        lable = []
-        lines = tf.io.gfile.GFile(lable_path).readlines()
+    def array_from_image(self, image: cv2.typing.MatLike):
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        for line in lines:
-            lable.append(line.rstrip())
-        
-        return lable
+        image = cv2.resize(gray_image, (28, 28))
+        cv2.imshow("adasd" + str(random.random()), image)
+        return image.reshape(1, -1)
+
+
+    def translate_lable(self, lable: int):
+        if lable < 10:
+            return str(lable)
+        else:
+            section = int((lable - 10) / 26)
+
+            if section == 0:
+                return chr(65 + (lable - 10))
+            else:
+                return chr(97 + (lable - 10))
+
+    def lable_image(self, image: np.array) -> str:
+        prediction = self.model.predict(image)
+        return self.translate_lable(prediction[0])
     
-    def tensor_from_image(self, image: cv2.typing.MatLike, size: int):
-        image = cv2.resize(image, dsize=(size, size), interpolation=cv2.INTER_CUBIC)
-
-        image_data = np.asarray(image, dtype=np.uint8)
-        image_data = cv2.normalize(image_data.astype('float'), None, -0.5, .5, cv2.NORM_MINMAX)
-
-        return np.expand_dims(image_data, 0)
-
-
-    def lable_image(self, tensor: tf.Tensor) -> str:
-        input_layer = "import/input"
-        output_layer = "import/final_result"
-
-
-        input_op = self.graph.get_operation_by_name(input_layer)
-        output_op = self.graph.get_operation_by_name(output_layer)
-
-        results = self.sess.run(output_op.outputs[0], {input_op.outputs[0]: tensor})
-
-        results = np.squeeze(results)
-
-        top = results.argsort()[-1:][::-1]
-
-        return self.lable[top[0]]
-    
-    def lable_image_list(self, images: list[cv2.typing.MatLike], size: int) -> str:
-        return "".join([self.lable_image(self.tensor_from_image(image, size)) for image in images])
+    def lable_image_list(self, images: list[cv2.typing.MatLike]) -> str:
+        return "".join([self.lable_image(self.array_from_image(image)) for image in images])

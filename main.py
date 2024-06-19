@@ -4,12 +4,13 @@ from parse import parse_plate, extract_characters
 import imutils
 import random
 from ocr import OCR
+import joblib
+
 
 if __name__ == "__main__":
     image: cv2.typing.MatLike = cv2.imread("data/license_plates/3375_1389548347.jpg", cv2.IMREAD_COLOR)
 
-    model = OCR(model_path="model/binary_128_0.50_ver3.pb", 
-                            lable_path="model/binary_128_0.50_labels_ver2.txt") 
+    model = OCR(model_path="model/emnist_byclass_svm.pkl")
 
     image = imutils.resize(image, width=500)
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
         chars = extract_characters(candidate)
         for char in chars:
             cv2.imshow("char" + str(random.random()), char)
-        prediction = model.lable_image_list(chars, 128)
+        prediction = model.lable_image_list(chars)
         print(prediction)
 
 
