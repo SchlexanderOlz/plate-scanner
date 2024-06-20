@@ -76,7 +76,6 @@ def extract_characters(plate: cv2.typing.MatLike) -> list[str]:
                 x = 0
             
             _, converted = cv2.threshold(bg_thresh[y:y+h+(inc * 2), x:x+w+(inc * 2)], 150, 255, cv2.THRESH_BINARY_INV)
-            cv2.imshow("char" + str(random.random()), converted)
-            chars.append( cv2.cvtColor(converted, cv2.COLOR_GRAY2RGB))
+            chars.append(cv2.cvtColor(converted, cv2.COLOR_GRAY2RGB))
         return chars 
     return []

@@ -1,5 +1,4 @@
 import cv2
-import random
 from typing import Sequence
 import numpy as np
 
@@ -76,10 +75,7 @@ def validate_plate(contour: cv2.typing.MatLike) -> bool:
     if ratio < 1:
         ratio = 1 / ratio
 
-    if (area < min or area > max) or (ratio < ratioMin or ratio > ratioMax):
-        return False
-
-    return True
+    return not ((area < min or area > max) or (ratio < ratioMin or ratio > ratioMax))
 
 
 def clean_plate(plate: cv2.typing.MatLike):
@@ -116,7 +112,6 @@ def extract_candidates(image: cv2.typing.MatLike) -> list[cv2.typing.MatLike]:
         if validate_plate(contour):
             x, y, w, h = cv2.boundingRect(contour)
             plate_area_img = image[y : y + h, x : x + w]
-
 
             cleaned, coords = clean_plate(plate_area_img)
 

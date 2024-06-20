@@ -4,11 +4,10 @@ from parse import extract_characters
 import imutils
 import random
 from ocr import OCR
-import joblib
 
 
 if __name__ == "__main__":
-    image: cv2.typing.MatLike = cv2.imread("data/license_plates/145_-33958056.jpg", cv2.IMREAD_COLOR)
+    image: cv2.typing.MatLike = cv2.imread("data/license_plates/3375_1389548347.jpg", cv2.IMREAD_COLOR)
 
     model = OCR(model_path="model/emnist_byclass_svm.pkl")
 

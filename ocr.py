@@ -29,12 +29,7 @@ class OCR:
         if lable < 10:
             return str(lable)
         else:
-            section = int((lable - 10) / 26)
-
-            if section == 0:
-                return chr(65 + (lable - 10))
-            else:
-                return chr(97 + (lable - 10))
+            return chr(65 + (lable - 10))
 
     def lable_image(self, image: np.array) -> str:
         prediction = self.model.predict(image)
